@@ -1,19 +1,27 @@
+import os
 from flask import Flask, flash, render_template, request, redirect, url_for, session as login_session
 from datetime import datetime
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
+from dotenv import load_dotenv
+import json
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__, template_folder='templates', static_folder='static')
 app.config['SECRET_KEY'] = 'super-secret-key'
 
+# Load Firebase credentials from environment variable
+firebase_creds = json.loads(os.getenv('FIREBASE_SERVICE_ACCOUNT'))
+
 # Initialize Firebase Admin SDK
-cred = credentials.Certificate('firebase_service_account.json')
+cred = credentials.Certificate(firebase_creds)
 firebase_admin.initialize_app(cred)
 
 # Initialize Firestore
 db = firestore.client()
-
 
 # Route for signup
 @app.route('/', methods=['GET', 'POST'])
@@ -70,7 +78,7 @@ def signin():
                 # Set session variables
                 login_session['user_id'] = users[0].id  # Store Firestore document ID as user_id
                 login_session['email'] = user['email']
-                login_session['username'] = user['user_name']
+                login_session['user_name'] = user['user_name']
 
                 flash('Login successful!', 'success')
                 return redirect(url_for('homepage'))
@@ -80,7 +88,6 @@ def signin():
             flash('User does not exist.', 'error')
 
     return render_template('signin.html')
-
 
 # Route for homepage
 @app.route('/homepage')
@@ -92,7 +99,7 @@ def homepage():
 
     user_doc = db.collection('users').document(user_id).get()
 
-    if user_doc.exists:
+    if user_doc.exists():
         user_data = user_doc.to_dict()
         role = user_data.get('role')
 
