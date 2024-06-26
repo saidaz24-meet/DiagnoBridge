@@ -99,7 +99,7 @@ def homepage():
 
     user_doc = db.collection('users').document(user_id).get()
 
-    if user_doc.exists():
+    if user_doc.exists:
         user_data = user_doc.to_dict()
         role = user_data.get('role')
 
@@ -113,6 +113,7 @@ def homepage():
             return render_template('homepage.html', chats=user_chats)
 
     return redirect(url_for('signin'))
+
 
 # Route for chat room
 @app.route('/chat/<chat_id>', methods=['GET', 'POST'])
