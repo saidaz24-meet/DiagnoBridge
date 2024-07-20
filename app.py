@@ -33,6 +33,21 @@ VAPID_PUBLIC_KEY = os.getenv('VAPID_PUBLIC_KEY')
 VAPID_PRIVATE_KEY = os.getenv('VAPID_PRIVATE_KEY')
 VAPID_CLAIMS = {"sub": "mailto:your-email@example.com"}
 
+# trying to secure apiKey to push to github...(Firebase API key exposed chatGPT with az.said)
+@app.route('/api/config')
+def config():
+    return jsonify({
+        'apiKey': os.getenv('FIREBASE_API_KEY'),
+        'authDomain': 'messaging-web-9d1e9.firebaseapp.com',
+        'databaseURL': 'https://messaging-web-9d1e9-default-rtdb.firebaseio.com',
+        'projectId': 'messaging-web-9d1e9',
+        'storageBucket': 'messaging-web-9d1e9',
+        'messagingSenderId': '996676983555',
+        'appId': '1:996676983555:web:885c8daed09ff95aae6736',
+        'measurementId': 'G-0QGRKVEL19',
+        'vapidPublicKey': 'BP2N9O0us4zsAVJ8QECLzJKfu_gNzwZoQ0kvxOwvekAlXtO_wE2tF-a3VvA5-xZ7m-A_ZRKBUW-xxTSu_yaqX6U'
+    })
+
 @app.route('/static/js/firebase-messaging-sw.js')
 def service_worker():
     return app.send_static_file('js/firebase-messaging-sw.js')
