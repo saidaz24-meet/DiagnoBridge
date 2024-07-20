@@ -4,7 +4,7 @@ importScripts('/static/js/firebase-messaging.js');
 
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyC8xq78KFmMbCJrK-3ko6djACxMBwUDPmY",
+  apiKey: process.env.FIREBASE_API_KEY,
   authDomain: "messaging-web-9d1e9.firebaseapp.com",
   databaseURL: "https://messaging-web-9d1e9-default-rtdb.firebaseio.com",
   projectId: "messaging-web-9d1e9",
