@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "firebase": "^10.12.4"
+  },
+  "name": "messaging-web",
+  "version": "1.0.0",
+  "description": "this is a simple messaging website where a user can log into his chat with me, and talk freely about whatever comes up to his mind. kind  of like a private WhatsApp.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

@@ -1,0 +1,44 @@
+/* Default Theme */
+body {
+    background-color: #f1f1f1;
+}
+
+.header-buttons button {
+    background-color: #007bff; /* Blue */
+}
+
+/* Theme 1 */
+.theme-1 body {
+    background-color: yellow;
+}
+
+.theme-1 .header-buttons button {
+    background-color: purple;
+}
+
+/* Theme 2 */
+.theme-2 body {
+    background-color: green;
+}
+
+.theme-2 .header-buttons button {
+    background-color: brown;
+}
+
+/* Theme 3 */
+.theme-3 body {
+    background-color: pink;
+}
+
+.theme-3 .header-buttons button {
+    background-color: orange;
+}
+
+/* Theme 4 */
+.theme-4 body {
+    background-color: lightblue;
+}
+
+.theme-4 .header-buttons button {
+    background-color: darkblue;
+}

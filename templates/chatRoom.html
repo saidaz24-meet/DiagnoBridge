@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #f1f1f1;
+        }
+
+        .header-buttons {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: #e0e0e0;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .header-buttons button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+        }
+
+        #chat-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message {
+            display: inline-block;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+
+        .message.sent {
+            align-self: flex-end;
+            background-color: #007bff;
+            color: white;
+        }
+
+        .message.received {
+            align-self: flex-start;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        #message-form {
+            display: flex;
+            padding: 10px;
+            background-color: #e0e0e0;
+            border-top: 1px solid #ccc;
+        }
+
+        #message {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        #message-form button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .header-buttons button {
+                padding: 8px 10px;
+                font-size: 14px;
+            }
+
+            #message-form button {
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            #message {
+                padding: 8px;
+                font-size: 14px;
+                margin-right: 5px;
+            }
+
+            .message {
+                max-width: 90%;
+            }
+
+            .message.sent, .message.received {
+                padding: 8px;
+                font-size: 14px;
+            }
+
+            .timestamp {
+                font-size: 12px;
+            }
+        }
+
+    </style>
+
+    <!-- Firebase JS SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-messaging.js"></script>
+    <script type="module" src="{{ url_for('static', filename='js/Main.js') }}"></script>
+
+</head>
+<body>
+    <button id="playButton">🎤 Play Relaxing Music</button>
+
+
+    <div class="header-buttons">
+        {% if user_role == 'manager' %}
+            <button id="backToHomepage" onclick="window.location.href='{{ url_for('homepage') }}'">Back to Homepage</button>
+        {% endif %}
+        <button id="logoutButton" onclick="window.location.href='{{ url_for('logout') }}'">Logout</button>
+        <button id="themeToggleButton">Change Theme</button> <!-- Add this button -->
+    </div>
+
+    <h1>Welcome, {{ user_name }}</h1>
+    <div id="chat-box">
+        {% for message in messages %}
+        <div class="message {{ 'sent' if message['sender'] == user_name else 'received' }}">
+            <strong>{{ message['sender'] }}</strong>: {{ message['content'] }}
+            <span class="timestamp">{{ message['timestamp'] }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    <form id="message-form">
+        <input type="text" id="message" name="message" placeholder="Type your message..." required>
+        <button type="submit">Send</button>
+    </form>
+
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+
+    <script>
+        const socket = io();
+
+        document.getElementById('message-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const messageContent = document.getElementById('message').value;
+
+            fetch(`/chat/${'{{ chat_id }}'}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    'message': messageContent
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('message').value = ''; // Clear the input field
+                sendPushNotification('{{ chat_id }}', messageContent); // Send push notification
+            })
+            .catch(error => console.error('Error:', error));
+        });
+
+        function sendPushNotification(chatId, messageContent) {
+            fetch('/send_push_notification', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    message: messageContent
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Push notification sent successfully:', data);
+            })
+            .catch(error => {
+                console.error('Error sending push notification:', error);
+            });
+        }
+
+        socket.on('connect', function() {
+            socket.emit('join', { chat_id: '{{ chat_id }}' });
+        });
+
+        socket.on('new_message', function(message) {
+            const chatBox = document.getElementById('chat-box');
+            const newMessage = document.createElement('div');
+            newMessage.className = 'message ' + (message.sender === '{{ user_name }}' ? 'sent' : 'received');
+
+            const utcDate = new Date(message.timestamp);
+            const localDate = utcDate.toLocaleString(undefined, {
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric'
+            });
+
+            newMessage.innerHTML = `<strong>${message.sender}</strong>: ${message.content} <span class="timestamp">${localDate}</span>`;
+
+            chatBox.appendChild(newMessage);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+
+        window.addEventListener('beforeunload', function() {
+            socket.emit('leave', { chat_id: '{{ chat_id }}' });
+            fetch('/update_online_status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ user_id: '{{ user_id }}', online: false })
+            }).then(response => {
+                console.log('Online status updated successfully.');
+            }).catch(error => {
+                console.error('Failed to update online status:', error);
+            });
+        });
+
+        window.onload = function() {
+            document.querySelectorAll('.timestamp').forEach(function(element) {
+                const utcDate = new Date(element.textContent);
+                const localDate = utcDate.toLocaleString(undefined, {
+                    year: 'numeric',
+                    month: 'numeric',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric'
+                });
+                element.textContent = localDate;
+            });
+        };
+
+    </script>
+</body>
+</html>

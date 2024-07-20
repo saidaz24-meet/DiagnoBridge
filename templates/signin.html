@@ -3,80 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <title>Signin</title>
-</head>
-<body>
 
-        <!-- Flash Messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-messaging.js"></script>
+    <script type="module" src="{{ url_for('static', filename='js/firebase-messaging.js') }}"></script>
 
-
-
-    <form method="post" action="/signin">
-        <!-- Heading -->
-        <h4>
-        sign in to your account
-        </h4>
-
-        <!-- Subheading -->
-        <p >
-        Please fill up your information below to sign in.
-        </p>
-
-        <!-- Email -->
-        <div>
-            <label>Email address*</label>
-            <div>
-                <input type="email"  name="email" id="emailStr" required>
-            </div>
-        </div>
-
-        <!-- Password -->
-        <div>
-            <label>Password*</label>
-            <div class="input-group">
-                <input type="password"  name="password" minlength="6">
-            </div>
-        </div>
-        
-        <!-- Button -->
-        <div>
-            <input type="submit"/>
-        </div>
-
-
-
-        
-
-    </form>
-
-        <!-- Error Display -->
-        {% if error %}
-            <div class="alert alert-danger mt-3">
-                {{ error }}
-            </div>
-        {% endif %}
-    
-
-    
     <style>
-        /* Your CSS styles go here */
         body, h4, p, label, input {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-
         }
 
         body {
-            
             font-family: Arial, sans-serif;
             line-height: 1.6;
             color: #333;
@@ -85,6 +24,9 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            overflow: hidden; /* Ensure background animation is visible */
+            position: relative;
+            background: #3399ff;
         }
 
         form {
@@ -93,6 +35,8 @@
             background-color: #fff;
             border-radius: 5px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 1; /* Ensure the form is above the wave animation */
         }
 
         h4 {
@@ -145,6 +89,166 @@
         input[type="submit"]:hover {
             background-color: #0056b3;
         }
+
+        .signup-link {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .btn-back {
+            font-size: 14px;
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        .btn-back:hover {
+            text-decoration: underline;
+        }
+
+        /* Ripple Background Styles */
+        .ripple-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1; /* Ensure it is behind the form */
+        }
+
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            background: white;
+            animation: ripple 15s infinite;
+            box-shadow: 0px 0px 1px 0px #508fb9;
+        }
+
+        .small {
+            width: 200px;
+            height: 200px;
+            left: -100px;
+            bottom: -100px;
+        }
+
+        .medium {
+            width: 400px;
+            height: 400px;
+            left: -200px;
+            bottom: -200px;
+        }
+
+        .large {
+            width: 600px;
+            height: 600px;
+            left: -300px;
+            bottom: -300px;
+        }
+
+        .xlarge {
+            width: 800px;
+            height: 800px;
+            left: -400px;
+            bottom: -400px;
+        }
+
+        .xxlarge {
+            width: 1000px;
+            height: 1000px;
+            left: -500px;
+            bottom: -500px;
+        }
+
+        .shade1 {
+            opacity: 0.2;
+        }
+
+        .shade2 {
+            opacity: 0.5;
+        }
+
+        .shade3 {
+            opacity: 0.7;
+        }
+
+        .shade4 {
+            opacity: 0.8;
+        }
+
+        .shade5 {
+            opacity: 0.9;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0.8);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(0.8);
+            }
+        }
     </style>
+</head>
+<body>
+
+    <div class="ripple-background">
+        <div class="circle xxlarge shade1"></div>
+        <div class="circle xlarge shade2"></div>
+        <div class="circle large shade3"></div>
+        <div class="circle medium shade4"></div>
+        <div class="circle small shade5"></div>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form id="login-form" method="post" action="/signin">
+        <!-- Heading -->
+        <h4>Sign in to your account</h4>
+        <!-- Subheading -->
+        <p>Please fill up your information below to sign in.</p>
+        <!-- Email -->
+        <div>
+            <label>Email address*</label>
+            <div>
+                <input type="email" name="email" id="emailStr" required>
+            </div>
+        </div>
+        <!-- Password -->
+        <div>
+            <label>Password*</label>
+            <div class="input-group">
+                <input type="password" name="password" minlength="6" required>
+            </div>
+        </div>
+        <!-- Button -->
+        <div>
+            <input type="submit" value="Sign In"/>
+        </div>
+
+        <!-- Go back to Signup link -->
+        <div class="signup-link">
+            <a href="/" class="btn-back">Go back to Signup</a>
+        </div>
+        
+    </form>
+
+    <!-- Error Display -->
+    {% if error %}
+        <div class="alert alert-danger mt-3">
+            {{ error }}
+        </div>
+    {% endif %}
 </body>
 </html>
